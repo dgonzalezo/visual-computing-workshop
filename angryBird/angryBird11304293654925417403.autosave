@@ -1,0 +1,68 @@
+ const {Engine, Mouse, MouseConstraint, World, Events, Body} = Matter;
+let engine, world, bird, redImg, ground, boxes = [], boxImg, boxImg2, chuckImg, slingshot;
+
+function preload(){
+  redImg = loadImage('red.png');
+  boxImg = loadImage('box.png');
+  boxImg2 = loadImage('stone.jpg');
+  chuckImg = loadImage('chuck.png');
+}
+
+function setup() {
+   const canvas = createCanvas(1100,480);
+   noStroke();
+   engine = Engine.create();
+   world = engine.world;
+   
+   const mouse = Mouse.create(canvas.elt);
+   mouse.pixelRatio = pixelDensity();
+   
+   const mConstraint = MouseConstraint.create(
+                       engine, {
+                       mouse: mouse,
+                       collisionFilter: {
+                         mask: 2
+                       }
+                       });
+   World.add(world ,mConstraint);
+   
+   bird = new Bird(150,height -100,redImg);
+   slingshot = new SlingShot(bird.body);
+   
+   ground = new Ground(width/2, height-10, width, 20);
+   
+   for(let i=0; i<9; i++){
+     const box = new Box(width * 3.0/4, 50*i, 50, 50, i%2==0 ? boxImg: boxImg2);
+     boxes.push(box);
+
+   }
+   for(let i=0; i<9; i++){
+     const box = new Box(width * 3.0/4 + 75, 50*i, 50, 50, i%2==0 ? boxImg: boxImg2);
+     boxes.push(box);
+
+   }
+   Events.on(engine, "afterUpdate",
+   () => slingshot.fly(mConstraint))
+}
+
+
+function draw() {
+  background(129);
+  Engine.update(engine);
+  
+  slingshot.show();
+  bird.show();
+  ground.show();
+  for(const box of boxes){
+    box.show();
+  }
+
+}
+function keyPressed(){
+  if(key === ' '){
+    const image = random(0, 1) < 0.5 ? redImg :chuckImg;
+    World.remove(world, bird.body);
+    bird = new Bird(150,height -100,image);
+    slingshot.attach(bird.body);
+  }
+}
